@@ -3,8 +3,8 @@
 A high-performance academic management application built with Flutter, featuring a premium glassmorphic UI, persistent authentication, and real-time validation.
 
 ## Student Information
-- **Student Name:** [Your Name Here]
-- **Student ID:** [Your ID Here]
+- **Student Name:** Areeb Elahi
+- **Student ID:** SE221010
 
 ---
 
