@@ -21,27 +21,45 @@ A high-performance academic management application built with Flutter, featuring
 
 ### 1. Splash Screen
 The portal entrance featuring a secure neural uplink animation.
+
 ![Splash Screen](./screenshots/Splash-Screen.png)
+
+<br>
 
 ### 2. Registration Screen
 Secure account creation with real-time field validation and gender selection.
+
 ![Register Screen](./screenshots/Register-Screen.png)
+
+<br>
 
 ### 3. Login Screen
 Secure authentication portal with institutional email validation and password visibility toggles.
+
 ![Login Screen](./screenshots/Login-Screen.png)
+
+<br>
 
 ### 4. Student Dashboard
 Dynamic overview of the student's academic journey and active courses.
+
 ![Dashboard](./screenshots/Dashboard.png)
+
+<br>
 
 ### 5. Course Details
 Deep dive into specific course metrics, schedules, and learning objectives.
+
 ![Course Details](./screenshots/Course-Details.png)
+
+<br>
 
 ### 6. Tasks & Assignments
 Organized management of pending academic tasks.
+
 ![Task Page](./screenshots/TaskPage.png)
+
+<br>
 
 ---
 
