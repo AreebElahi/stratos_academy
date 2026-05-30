@@ -22,7 +22,7 @@ A high-performance academic management application built with Flutter, featuring
 ### 1. Splash Screen
 The portal entrance featuring a secure neural uplink animation.
 
-![Splash Screen](./screenshots/Splash-Screen.png)
+![Splash Screen](./screenshots/Splash-Screen-Updated.png)
 
 <br>
 
