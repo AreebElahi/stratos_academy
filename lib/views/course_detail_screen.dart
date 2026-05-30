@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import '../models/course_model.dart';
+import '../controllers/course_controller.dart';
 
 class CourseDetailScreen extends StatelessWidget {
   final CourseModel course;
@@ -96,14 +98,30 @@ class CourseDetailScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: course.primaryColor.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: course.primaryColor.withOpacity(0.3)),
-                              ),
-                              child: Text(category, style: TextStyle(color: course.primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: course.primaryColor.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: course.primaryColor.withOpacity(0.3)),
+                                  ),
+                                  child: Text(category, style: TextStyle(color: course.primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                                ),
+                                if (context.watch<CourseController>().isRegistered(course.id)) ...[
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF10B981).withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                                    ),
+                                    child: const Text("ENROLLED", style: TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                                  ),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 20),
                             Text(
@@ -180,7 +198,7 @@ class CourseDetailScreen extends StatelessWidget {
                               flex: 1,
                               child: Column(
                                 children: [
-                                  _buildSidePanel(),
+                                  _buildSidePanel(context),
                                   const SizedBox(height: 32),
                                   _buildProfessorCard(),
                                 ],
@@ -191,7 +209,7 @@ class CourseDetailScreen extends StatelessWidget {
                       ),
                       if (isMobile) ...[
                         const SizedBox(height: 48),
-                        _buildSidePanel(),
+                        _buildSidePanel(context),
                         const SizedBox(height: 32),
                         _buildProfessorCard(),
                       ],
@@ -301,7 +319,10 @@ class CourseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSidePanel() {
+  Widget _buildSidePanel(BuildContext context) {
+    final courseController = context.watch<CourseController>();
+    final isEnrolled = courseController.isRegistered(course.id);
+
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -328,19 +349,54 @@ class CourseDetailScreen extends StatelessWidget {
             height: 64,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(colors: [course.primaryColor, course.primaryColor.withOpacity(0.7)]),
-              boxShadow: [
-                BoxShadow(color: course.primaryColor.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
-              ]
+              gradient: isEnrolled
+                  ? null
+                  : LinearGradient(colors: [course.primaryColor, course.primaryColor.withOpacity(0.7)]),
+              color: isEnrolled ? Colors.transparent : null,
+              border: isEnrolled ? Border.all(color: AppTheme.errorColor.withOpacity(0.5), width: 2) : null,
+              boxShadow: isEnrolled
+                  ? null
+                  : [
+                      BoxShadow(color: course.primaryColor.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                    ],
             ),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
+                backgroundColor: isEnrolled ? AppTheme.errorColor.withOpacity(0.1) : Colors.transparent,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
-              onPressed: () {},
-              child: const Text("Register for Course", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              onPressed: () {
+                if (isEnrolled) {
+                  courseController.unregisterFromCourse(course.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Unregistered from ${course.title}'),
+                      backgroundColor: AppTheme.errorColor,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                } else {
+                  courseController.registerForCourse(course.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Successfully registered for ${course.title}!'),
+                      backgroundColor: const Color(0xFF10B981),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                isEnrolled ? "Unregister Course" : "Register for Course",
+                style: TextStyle(
+                  color: isEnrolled ? AppTheme.errorColor : Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ),
           )
         ],

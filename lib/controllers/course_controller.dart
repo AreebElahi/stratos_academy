@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import '../models/course_model.dart';
 import '../services/course_service.dart';
@@ -8,6 +9,9 @@ class CourseController extends ChangeNotifier {
 
   List<CourseModel> _courses = [];
   List<CourseModel> get courses => _courses;
+
+  List<int> _registeredCourseIds = [];
+  List<int> get registeredCourseIds => _registeredCourseIds;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -20,6 +24,47 @@ class CourseController extends ChangeNotifier {
 
   String? _actionErrorMessage;
   String? get actionErrorMessage => _actionErrorMessage;
+
+  CourseController() {
+    _loadRegisteredCourses();
+  }
+
+  Future<void> _loadRegisteredCourses() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String>? ids = prefs.getStringList('registered_courses');
+      if (ids != null) {
+        _registeredCourseIds = ids.map((id) => int.parse(id)).toList();
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> registerForCourse(int courseId) async {
+    if (!_registeredCourseIds.contains(courseId)) {
+      _registeredCourseIds.add(courseId);
+      notifyListeners();
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('registered_courses', _registeredCourseIds.map((id) => id.toString()).toList());
+      } catch (_) {}
+    }
+  }
+
+  Future<void> unregisterFromCourse(int courseId) async {
+    if (_registeredCourseIds.contains(courseId)) {
+      _registeredCourseIds.remove(courseId);
+      notifyListeners();
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('registered_courses', _registeredCourseIds.map((id) => id.toString()).toList());
+      } catch (_) {}
+    }
+  }
+
+  bool isRegistered(int courseId) {
+    return _registeredCourseIds.contains(courseId);
+  }
 
   Future<void> fetchCourses({bool force = false}) async {
     // Avoid double fetching if we already have data, unless forced
@@ -109,6 +154,16 @@ class CourseController extends ChangeNotifier {
       await _service.deleteCourse(apiId);
 
       _courses.removeWhere((c) => c.id == id);
+      
+      // Auto-unregister if deleted
+      if (_registeredCourseIds.contains(id)) {
+        _registeredCourseIds.remove(id);
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setStringList('registered_courses', _registeredCourseIds.map((id) => id.toString()).toList());
+        } catch (_) {}
+      }
+
       _isActionLoading = false;
       notifyListeners();
       return true;

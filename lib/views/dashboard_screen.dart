@@ -41,6 +41,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final authController = Provider.of<AuthController>(context);
     final courseController = Provider.of<CourseController>(context);
     final displayName = authController.currentUser?.fullName ?? "Student";
+    final registeredCourses = courseController.courses
+        .where((c) => courseController.registeredCourseIds.contains(c.id))
+        .toList();
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -148,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   courseController.isLoading 
                       ? "Loading your academic dashboard..."
-                      : "You have ${courseController.courses.length} courses loaded from JSONPlaceholder.",
+                      : "You are currently registered in ${registeredCourses.length} course${registeredCourses.length == 1 ? '' : 's'}.",
                   style: TextStyle(fontFamily: 'Manrope', fontSize: isMobile ? 14 : 16, fontWeight: FontWeight.w500, color: AppTheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 40),
@@ -191,19 +194,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   )
-                else if (courseController.courses.isEmpty)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 48.0),
-                      child: Text("No courses available.", style: TextStyle(color: Colors.grey)),
+                else if (registeredCourses.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.05)),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.school, color: AppTheme.primary, size: 36),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "No Enrolled Courses",
+                          style: TextStyle(
+                            fontFamily: 'Space Grotesk',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "You are not registered in any courses yet. Navigate to the 'Courses' tab below to view and enroll in academic courses.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.onSurfaceVariant,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 else
                   Wrap(
                     spacing: 16,
                     runSpacing: 16,
-                    children: courseController.courses
-                        .take(3) // Only show the first 3 active courses on the dashboard
+                    children: registeredCourses
                         .map((course) => _buildCourseCardWrapper(context, isMobile, course))
                         .toList(),
                   ),
