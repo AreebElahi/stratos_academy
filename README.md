@@ -77,3 +77,18 @@ To run this project locally:
 2. Clone the repository.
 3. Run `flutter pub get` to install dependencies.
 4. Run `flutter run -d chrome` (or your preferred device).
+
+---
+
+## API Integration (Assignment 2)
+- **API Used**: [JSONPlaceholder](https://jsonplaceholder.typicode.com/)
+- **Documentation Reference**: [JSONPlaceholder Guide](https://jsonplaceholder.typicode.com/guide)
+- **Branch Name**: `feature/course-api-integration`
+- **Architecture**: Separate Service Layer (`lib/services/course_service.dart`), State Management Controller (`lib/controllers/course_controller.dart`), and UI Page (`lib/views/courses_screen.dart`).
+
+### API Screenshots
+- **Courses Screen API List**: Fetches course data dynamically from JSONPlaceholder `/posts` with support for loading and error states.
+- **Add Course Dialog**: sliding bottom sheet to input Title and Description, sends POST to API, and prepends mock response.
+- **Update Course Dialog**: Pre-fills course details, sends PUT to API, and applies changes.
+- **Delete Course Action**: Confirms action and makes DELETE API call, removing item from local state.
+

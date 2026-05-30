@@ -1,28 +1,34 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
+import '../models/course_model.dart';
 
 class CourseDetailScreen extends StatelessWidget {
-  final String title;
-  final String description;
+  final CourseModel course;
   final String category;
   final String bannerUrl;
   final String professor;
   final String level;
-  final String schedule;
-  final Color primaryColor;
 
-  const CourseDetailScreen({
+  CourseDetailScreen({
     super.key,
-    this.title = "Mobile App Development",
-    this.description = "Dive into the architecture and ecosystem of modern mobile platforms. This course covers everything from cross-platform development with Flutter to native Android and iOS paradigms.\n\nStudents will engage in end-to-end product development, starting from UX wireframing in Figma to deploying high-performance applications on the App Store and Google Play.",
-    this.category = "ENGINEERING & DESIGN • SEM 2",
-    this.bannerUrl = "https://picsum.photos/seed/course_details/1200/600",
-    this.professor = "Prof. Julian Vane",
-    this.level = "Level 400",
-    this.schedule = "Tue & Thu • 02:00 PM — 03:30 PM",
-    this.primaryColor = AppTheme.primary,
-  });
+    required this.course,
+  })  : category = "API COURSE • ID ${course.id}",
+        bannerUrl = "https://picsum.photos/seed/course_${course.id}/1200/600",
+        professor = _getProfessorForId(course.id),
+        level = "Level ${200 + (course.id % 3) * 100}";
+
+  static String _getProfessorForId(int id) {
+    final professors = [
+      "Prof. Julian Vane",
+      "Dr. Sarah Connor",
+      "Prof. Alan Turing",
+      "Dr. Grace Hopper",
+      "Prof. Richard Feynman",
+      "Dr. Ada Lovelace",
+    ];
+    return professors[id % professors.length];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +68,10 @@ class CourseDetailScreen extends StatelessWidget {
                   Image.network(
                     bannerUrl,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: const Color(0xFF0F172A),
+                      child: Icon(course.icon, color: course.primaryColor, size: 64),
+                    ),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -89,15 +99,15 @@ class CourseDetailScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.15),
+                                color: course.primaryColor.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: primaryColor.withOpacity(0.3)),
+                                border: Border.all(color: course.primaryColor.withOpacity(0.3)),
                               ),
-                              child: Text(category, style: TextStyle(color: primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                              child: Text(category, style: TextStyle(color: course.primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              title,
+                              course.title,
                               style: TextStyle(
                                 fontFamily: 'Space Grotesk',
                                 fontSize: isMobile ? 36 : 56,
@@ -142,7 +152,7 @@ class CourseDetailScreen extends StatelessWidget {
                               children: [
                                 _buildSectionTitle("Course Overview"),
                                 Text(
-                                  description,
+                                  course.description,
                                   style: TextStyle(
                                     fontSize: 16,
                                     height: 1.8,
@@ -151,16 +161,16 @@ class CourseDetailScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 48),
                                 _buildSectionTitle("Learning Outcomes"),
-                                _buildOutcomeItem("Master cross-platform architecture with Flutter and Dart."),
-                                _buildOutcomeItem("Implement advanced state management and reactive patterns."),
-                                _buildOutcomeItem("Integrate robust backend services and cloud APIs."),
-                                _buildOutcomeItem("Design high-fidelity interactive prototypes in Figma."),
+                                _buildOutcomeItem("Master the fundamentals of this core syllabus area."),
+                                _buildOutcomeItem("Implement modern industry patterns and development models."),
+                                _buildOutcomeItem("Integrate REST API communications using reliable architectures."),
+                                _buildOutcomeItem("Engage with practical problem solving tasks and assessments."),
                                 const SizedBox(height: 48),
                                 _buildSectionTitle("Curriculum & Syllabus"),
-                                _buildSyllabusItem("01", "Foundation of Mobile Ecosystems", "Introduction to ARM architecture and OS kernels."),
-                                _buildSyllabusItem("02", "Reactive UI & Layout Systems", "Deep dive into the Flutter rendering pipeline."),
-                                _buildSyllabusItem("03", "Data Persistence & Cloud Sync", "SQLite, Hive, and Firebase Realtime integration."),
-                                _buildSyllabusItem("04", "Performance Optimization", "Memory management, profiling, and jank reduction."),
+                                _buildSyllabusItem("01", "Introduction & Foundations", "Key terminology, historic context, and introductory lectures."),
+                                _buildSyllabusItem("02", "Core Frameworks & Tools", "Setting up local toolchains, systems architecture, and core APIs."),
+                                _buildSyllabusItem("03", "Data Systems & Integration", "State persistence, serialization, and background synchronizations."),
+                                _buildSyllabusItem("04", "Testing & Performance", "Debugging strategies, memory profiling, and final production builds."),
                               ],
                             ),
                           ),
@@ -203,7 +213,7 @@ class CourseDetailScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle_outline, color: primaryColor, size: 20),
+          Icon(Icons.check_circle_outline, color: course.primaryColor, size: 20),
           const SizedBox(width: 12),
           Expanded(child: Text(text, style: const TextStyle(fontSize: 15, height: 1.5))),
         ],
@@ -221,7 +231,7 @@ class CourseDetailScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(number, style: TextStyle(fontFamily: 'Space Grotesk', fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor.withOpacity(0.3))),
+          Text(number, style: TextStyle(fontFamily: 'Space Grotesk', fontSize: 24, fontWeight: FontWeight.bold, color: course.primaryColor.withOpacity(0.3))),
           const SizedBox(width: 24),
           Expanded(
             child: Column(
@@ -250,14 +260,14 @@ class CourseDetailScreen extends StatelessWidget {
           CircleAvatar(
             radius: 40,
             backgroundImage: const NetworkImage("https://picsum.photos/seed/professor/200"),
-            backgroundColor: primaryColor.withOpacity(0.1),
+            backgroundColor: course.primaryColor.withOpacity(0.1),
           ),
           const SizedBox(height: 16),
           Text(professor, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 18, fontWeight: FontWeight.bold)),
           const Text("Senior Engineering Fellow", style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 16),
           Text(
-            "An industry veteran with 15+ years of experience in distributed systems and mobile architecture.",
+            "An industry veteran with 15+ years of experience in distributed systems and software architecture.",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, height: 1.5, color: AppTheme.onSurfaceVariant),
           ),
@@ -283,9 +293,9 @@ class CourseDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title.toUpperCase(), style: TextStyle(fontFamily: 'Manrope', fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2, color: primaryColor)),
+          Text(title.toUpperCase(), style: TextStyle(fontFamily: 'Manrope', fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2, color: course.primaryColor)),
           const SizedBox(height: 8),
-          Container(width: 40, height: 3, decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 3, decoration: BoxDecoration(color: course.primaryColor, borderRadius: BorderRadius.circular(2))),
         ],
       ),
     );
@@ -307,9 +317,9 @@ class CourseDetailScreen extends StatelessWidget {
         children: [
           const Text("Schedule Information", style: TextStyle(fontFamily: 'Space Grotesk', fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 32),
-          _buildInfoRow(Icons.timer_outlined, "Class Timing", schedule),
+          _buildInfoRow(Icons.timer_outlined, "Class Timing", course.schedule),
           const SizedBox(height: 24),
-          _buildInfoRow(Icons.location_on_outlined, "Location", "Academic Building • Room 402"),
+          _buildInfoRow(Icons.location_on_outlined, "Location", "Academic Building • Room ${100 + course.id}"),
           const SizedBox(height: 24),
           _buildInfoRow(Icons.assignment_turned_in_outlined, "Requirements", "90% Attendance Required"),
           const SizedBox(height: 40),
@@ -318,9 +328,9 @@ class CourseDetailScreen extends StatelessWidget {
             height: 64,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(colors: [primaryColor, primaryColor.withOpacity(0.7)]),
+              gradient: LinearGradient(colors: [course.primaryColor, course.primaryColor.withOpacity(0.7)]),
               boxShadow: [
-                BoxShadow(color: primaryColor.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                BoxShadow(color: course.primaryColor.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
               ]
             ),
             child: ElevatedButton(
@@ -345,7 +355,7 @@ class CourseDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: primaryColor, size: 20),
+          child: Icon(icon, color: course.primaryColor, size: 20),
         ),
         const SizedBox(width: 16),
         Expanded(

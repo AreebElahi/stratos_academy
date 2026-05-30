@@ -2,14 +2,29 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/course_controller.dart';
+import '../models/course_model.dart';
 import 'theme/app_theme.dart';
 import 'widgets/glass_panel.dart';
 import 'login_screen.dart';
 import 'course_detail_screen.dart';
 import 'notifications_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CourseController>().fetchCourses();
+    });
+  }
 
   void _logout(BuildContext context) {
     final authController = Provider.of<AuthController>(context, listen: false);
@@ -23,8 +38,9 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 800;
-    final controller = Provider.of<AuthController>(context);
-    final displayName = controller.currentUser?.fullName ?? "Student";
+    final authController = Provider.of<AuthController>(context);
+    final courseController = Provider.of<CourseController>(context);
+    final displayName = authController.currentUser?.fullName ?? "Student";
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -130,7 +146,9 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "You have 3 lectures today and 1 pending assignment.",
+                  courseController.isLoading 
+                      ? "Loading your academic dashboard..."
+                      : "You have ${courseController.courses.length} courses loaded from JSONPlaceholder.",
                   style: TextStyle(fontFamily: 'Manrope', fontSize: isMobile ? 14 : 16, fontWeight: FontWeight.w500, color: AppTheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 40),
@@ -140,49 +158,55 @@ class DashboardScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Active Courses", style: TextStyle(fontFamily: 'Space Grotesk', fontSize: 20, fontWeight: FontWeight.bold)),
-                    TextButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.arrow_forward, size: 16),
-                      label: isMobile ? const SizedBox() : const Text("View All"),
-                    )
+                    const Text(
+                      "(JSONPlaceholder API)",
+                      style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 
                 // Course List
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    _buildCourseCardWrapper(
-                      context,
-                      isMobile,
-                      title: "Mobile App Development",
-                      desc: "Comprehensive study of mobile ecosystems and cross-platform development.",
-                      icon: Icons.smartphone,
-                      color: AppTheme.primary,
-                      schedule: "Mon, Wed • 10:00 AM",
+                if (courseController.isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 48.0),
+                      child: CircularProgressIndicator(color: AppTheme.primary),
                     ),
-                    _buildCourseCardWrapper(
-                      context,
-                      isMobile,
-                      title: "Software Re-engineering",
-                      desc: "Advanced techniques for legacy system modernization and refactoring.",
-                      icon: Icons.settings_backup_restore,
-                      color: AppTheme.errorColor,
-                      schedule: "Tue, Thu • 02:00 PM",
+                  )
+                else if (courseController.errorMessage != null)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24.0),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.error_outline, color: AppTheme.errorColor, size: 36),
+                          const SizedBox(height: 12),
+                          Text(
+                            "Failed to load courses: ${courseController.errorMessage}",
+                            style: const TextStyle(color: AppTheme.errorColor, fontSize: 13),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                    _buildCourseCardWrapper(
-                      context,
-                      isMobile,
-                      title: "Management Information Systems (MIS)",
-                      desc: "Strategic application of IT systems in modern business environments.",
-                      icon: Icons.business_center,
-                      color: AppTheme.tertiary,
-                      schedule: "Fri • 09:00 AM",
+                  )
+                else if (courseController.courses.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 48.0),
+                      child: Text("No courses available.", style: TextStyle(color: Colors.grey)),
                     ),
-                  ],
-                ),
+                  )
+                else
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: courseController.courses
+                        .take(3) // Only show the first 3 active courses on the dashboard
+                        .map((course) => _buildCourseCardWrapper(context, isMobile, course))
+                        .toList(),
+                  ),
                 
                 const SizedBox(height: 40),
 
@@ -213,28 +237,19 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCourseCardWrapper(BuildContext context, bool isMobile, {
-    required String title,
-    required String desc,
-    required IconData icon,
-    required Color color,
-    required String schedule,
-  }) {
+  Widget _buildCourseCardWrapper(BuildContext context, bool isMobile, CourseModel course) {
     return SizedBox(
       width: isMobile ? double.infinity : (1024 - 48 - 32) / 3,
       child: GestureDetector(
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CourseDetailScreen(
-          title: title,
-          description: desc,
-          schedule: schedule,
-          primaryColor: color,
+          course: course,
         ))),
         child: _buildCourseCard(
-          icon: icon,
-          title: title,
-          desc: desc,
-          progress: 0.65,
-          color: color,
+          icon: course.icon,
+          title: course.title,
+          desc: course.description,
+          progress: 0.65 + (course.id % 5) * 0.05, // mock progress based on ID
+          color: course.primaryColor,
           status: "ENROLLED",
         ),
       ),
@@ -244,6 +259,7 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildCourseCard({required IconData icon, required String title, required String desc, required double progress, required Color color, required String status}) {
     return Container(
       padding: const EdgeInsets.all(24),
+      height: 280, // Keep height consistent for wrap items
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(24),
@@ -276,10 +292,12 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          Text(title, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 18, fontWeight: FontWeight.bold, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+          Text(title, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 16, fontWeight: FontWeight.bold, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 8),
-          Text(desc, style: const TextStyle(fontSize: 12, color: AppTheme.onSurfaceVariant, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 24),
+          Expanded(
+            child: Text(desc, style: const TextStyle(fontSize: 12, color: AppTheme.onSurfaceVariant, height: 1.5), maxLines: 3, overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

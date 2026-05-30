@@ -262,8 +262,9 @@ class _LoginScreenBody extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 40),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               const Text(
                                 "New to the system?",
