@@ -344,40 +344,24 @@ class CourseDetailScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _buildInfoRow(Icons.assignment_turned_in_outlined, "Requirements", "90% Attendance Required"),
           const SizedBox(height: 40),
-          Container(
-            width: double.infinity,
-            height: 64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: isEnrolled
-                  ? null
-                  : LinearGradient(colors: [course.primaryColor, course.primaryColor.withOpacity(0.7)]),
-              color: isEnrolled ? Colors.transparent : null,
-              border: isEnrolled ? Border.all(color: AppTheme.errorColor.withOpacity(0.5), width: 2) : null,
-              boxShadow: isEnrolled
-                  ? null
-                  : [
-                      BoxShadow(color: course.primaryColor.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
-                    ],
-            ),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isEnrolled ? AppTheme.errorColor.withOpacity(0.1) : Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          if (!isEnrolled)
+            Container(
+              width: double.infinity,
+              height: 64,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(colors: [course.primaryColor, course.primaryColor.withOpacity(0.7)]),
+                boxShadow: [
+                  BoxShadow(color: course.primaryColor.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                ],
               ),
-              onPressed: () {
-                if (isEnrolled) {
-                  courseController.unregisterFromCourse(course.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Unregistered from ${course.title}'),
-                      backgroundColor: AppTheme.errorColor,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
-                } else {
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                onPressed: () {
                   courseController.registerForCourse(course.id);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -387,18 +371,43 @@ class CourseDetailScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   );
-                }
-              },
-              child: Text(
-                isEnrolled ? "Unregister Course" : "Register for Course",
-                style: TextStyle(
-                  color: isEnrolled ? AppTheme.errorColor : Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                },
+                child: const Text(
+                  "Register for Course",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              height: 64,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3), width: 1.5),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    "You are Enrolled",
+                    style: TextStyle(
+                      color: Color(0xFF10B981),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )
         ],
       ),
     );
